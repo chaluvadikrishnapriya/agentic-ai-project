@@ -1,5 +1,5 @@
 import { MongoClient, type Db } from "mongodb"
-import { config } from "./config"
+import { getConfig } from "./config"
 
 let cachedClient: MongoClient | null = null
 let cachedDb: Db | null = null
@@ -9,8 +9,7 @@ export async function connectToDatabase() {
     return { client: cachedClient, db: cachedDb }
   }
 
-  const mongoUri = config.MONGODB_URI
-  const dbName = config.MONGODB_DB_NAME
+  const { MONGODB_URI: mongoUri, MONGODB_DB_NAME: dbName } = getConfig()
 
   const client = await MongoClient.connect(mongoUri)
   const db = client.db(dbName)

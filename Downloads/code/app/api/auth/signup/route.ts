@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase } from "@/lib/mongodb"
-import { config } from "@/lib/config"
+import { getConfig } from "@/lib/config"
 import jwt from "jsonwebtoken"
 
 export async function POST(request: NextRequest) {
@@ -33,8 +33,9 @@ export async function POST(request: NextRequest) {
 
     const userId = result.insertedId.toString()
 
-    // Generate JWT token
-    const token = jwt.sign({ userId, email }, config.JWT_SECRET, { expiresIn: "7d" })
+  // Generate JWT token (validate env at runtime)
+  const { JWT_SECRET } = getConfig()
+  const token = jwt.sign({ userId, email }, JWT_SECRET, { expiresIn: "7d" })
 
     return NextResponse.json({
       token,

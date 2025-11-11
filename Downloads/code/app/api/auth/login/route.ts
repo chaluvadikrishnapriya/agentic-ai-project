@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { getDatabase } from "@/lib/mongodb"
-import { config } from "@/lib/config"
+import { getConfig } from "@/lib/config"
 import jwt from "jsonwebtoken"
 
 export async function POST(request: NextRequest) {
@@ -27,8 +27,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Invalid credentials" }, { status: 401 })
     }
 
-    // Generate JWT token
-    const token = jwt.sign({ userId: user._id.toString(), email: user.email }, config.JWT_SECRET, { expiresIn: "7d" })
+  // Generate JWT token (validate env at runtime)
+  const { JWT_SECRET } = getConfig()
+  const token = jwt.sign({ userId: user._id.toString(), email: user.email }, JWT_SECRET, { expiresIn: "7d" })
 
     return NextResponse.json({
       token,

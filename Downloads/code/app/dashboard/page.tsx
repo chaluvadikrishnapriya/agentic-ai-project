@@ -1,5 +1,8 @@
-import { createClient } from "@/lib/server"
-import { redirect } from "next/navigation"
+"use client"
+
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/client"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import { BillUploadSection } from "@/components/bill-upload-section"
 import { HealthRecommendations } from "@/components/health-recommendations"
@@ -7,15 +10,41 @@ import { DashboardStats } from "@/components/dashboard-stats"
 import { HealthInsights } from "@/components/health-insights"
 import { CycleHistory } from "@/components/cycle-history"
 
-export default async function DashboardPage() {
-  const supabase = await createClient()
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
+export default function DashboardPage() {
+  const [userId, setUserId] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
 
-  if (!user) {
-    redirect("/auth/login")
+  useEffect(() => {
+    const init = async () => {
+      try {
+        const supabase = createClient()
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) {
+          router.push("/auth/login")
+          return
+        }
+        setUserId(user.id)
+      } catch (e) {
+        console.error("Failed to get user on client:", e)
+        router.push("/auth/login")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    init()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    )
   }
+
+  if (!userId) return null
 
   return (
     <DashboardLayout>
@@ -31,7 +60,7 @@ export default async function DashboardPage() {
 
         <HealthRecommendations />
 
-        <BillUploadSection userId={user.id} />
+        <BillUploadSection userId={userId} />
 
         <CycleHistory />
       </div>
